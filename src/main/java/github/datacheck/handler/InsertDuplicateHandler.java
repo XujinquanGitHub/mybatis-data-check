@@ -26,24 +26,9 @@ import java.util.stream.Collectors;
  * @description: 插入时检查数据是否重复
  * @author: 许金泉
  **/
-public class InsertDuplicateHandler implements IDuplicateHandler {
-
-    private final Log log = LogFactory.getLog(InsertDuplicateHandler.class.toString());
+public class InsertDuplicateHandler extends AbstractDuplicateHandler {
 
     private SQLInsertStatement insertStatement;
-
-    private final String selectCountFormatter = " select %s from %s where %s";
-
-    // 需要查询的字段和值
-    private Map<Field, String> queryColumnValue = new HashMap<>();
-
-    private String tableName;
-
-    private Executor executor;
-
-    // 数据库查询出来的数据
-    private List<Map<String, String>> database = new ArrayList<>();
-
 
     public InsertDuplicateHandler(SQLInsertStatement insertStatement, Executor executor) {
         this.insertStatement = insertStatement;
@@ -96,45 +81,10 @@ public class InsertDuplicateHandler implements IDuplicateHandler {
     }
 
     /**
-     * 在数据库中查询所需数据
-     * @return void
-     * @author 许金泉
-     */
-    private void queryDataBase() {
-        List<String> whereList = queryColumnValue.entrySet().stream().map(u -> " " + u.getKey().getName() + "='" + u.getValue() + "'").collect(Collectors.toList());
-        String querySql = String.format(selectCountFormatter, queryColumnValue.keySet().stream().map(u -> StringUtil.humpToLine(u.getName())).collect(Collectors.joining(",")), tableName, String.join(" or ", whereList));
-        PreparedStatement statement = null;
-        try {
-            statement = executor.getTransaction().getConnection().prepareStatement(querySql);
-            ResultSet resultSet = statement.executeQuery();
-            while (resultSet.next()) {
-                int size = queryColumnValue.size();
-                Map<String, String> rowData = new HashMap<>(size);
-                for (int i = 1; i < size + 1; i++) {
-                    String columnName = resultSet.getMetaData().getColumnName(i);
-                    Object value = resultSet.getObject(i);
-                    rowData.put(columnName.toLowerCase(), value.toString());
-                }
-                database.add(rowData);
-            }
-        } catch (SQLException e) {
-            log.error(e.toString(), e);
-        } finally {
-            if (statement != null) {
-                try {
-                    statement.close();
-                } catch (SQLException e) {
-                    log.error(e.toString(), e);
-                }
-            }
-        }
-    }
-
-    /**
      * 提取需要检查的字段
      * @author 许金泉
      */
-    private void extractQueryFields() {
+    protected void extractQueryFields() {
         this.tableName = insertStatement.getTableName().getSimpleName();
         // 提取需要检查的字段
         List<Field> fields = DuplicateDataInterceptor.tableColumn.entrySet().stream().filter(u -> u.getKey().equalsIgnoreCase(StringUtil.camel(tableName))).map(Map.Entry::getValue).findFirst().orElse(null);
@@ -155,8 +105,9 @@ public class InsertDuplicateHandler implements IDuplicateHandler {
                 queryColumnValue.put(field, columnValueMap.get(fieldName));
             }
         }
-
     }
+
+
 
 
 }
