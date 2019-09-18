@@ -4,10 +4,14 @@ import com.alibaba.druid.sql.SQLUtils;
 import com.alibaba.druid.sql.ast.SQLStatement;
 import com.alibaba.druid.sql.ast.statement.SQLInsertStatement;
 import com.alibaba.druid.util.JdbcConstants;
+import github.datacheck.exception.DuplicateDataException;
 import org.apache.ibatis.executor.Executor;
+import org.apache.ibatis.logging.Log;
+import org.apache.ibatis.logging.LogFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @program: data-check
@@ -18,26 +22,45 @@ public class HandlerManager {
 
     private String executeSQL;
 
+    private final Log log = LogFactory.getLog(HandlerManager.class.toString());
+
     private List<SQLStatement> sqlStatements;
 
     private Executor executor;
+
+    private List<IDuplicateHandler> listHandler = new ArrayList<>();
+
+    private List<DuplicateErrorMessage> errorMessages = new ArrayList<>();
 
     public HandlerManager(String sql, Executor executor) {
         this.executeSQL = sql;
         this.sqlStatements = SQLUtils.parseStatements(this.executeSQL, JdbcConstants.MYSQL);
         this.executor = executor;
+        initHandler();
     }
 
-    public void handle() {
+    private void initHandler() {
         if (sqlStatements == null || sqlStatements.size() == 0) {
             return;
         }
-        List<IDuplicateHandler> listHandler = new ArrayList<>();
         for (int i = 0; i < sqlStatements.size(); i++) {
             SQLStatement sqlStatement = sqlStatements.get(i);
             if (sqlStatement instanceof SQLInsertStatement) {
-                listHandler.add(new InsertDuplicateHandler((SQLInsertStatement) sqlStatement,executor));
+                listHandler.add(new InsertDuplicateHandler((SQLInsertStatement) sqlStatement, executor));
             }
+        }
+    }
+
+    public void handle() {
+        if (listHandler == null || listHandler.size() == 0) {
+            return;
+        }
+        listHandler.forEach(item -> {
+            errorMessages.addAll(item.handle());
+        });
+        if (errorMessages != null && errorMessages.size() > 0) {
+            log.error(errorMessages.stream().map(u -> u.toString()).collect(Collectors.joining("--------\n")));
+            throw new DuplicateDataException(errorMessages.stream().map(u -> u.getMessage()).collect(Collectors.joining(",")));
         }
     }
 

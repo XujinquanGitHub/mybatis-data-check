@@ -1,5 +1,7 @@
 package github.datacheck.handler;
 
+import java.util.List;
+
 /**
  * @program: data-check
  * @description: 检查数据是否重复
@@ -7,7 +9,6 @@ package github.datacheck.handler;
  **/
 public interface IDuplicateHandler {
 
-
-    boolean validateDataDuplicate();
+    List<DuplicateErrorMessage> handle();
 
 }

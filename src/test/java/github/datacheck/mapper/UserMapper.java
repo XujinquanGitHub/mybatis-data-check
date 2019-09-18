@@ -15,7 +15,7 @@ import org.apache.ibatis.annotations.Select;
 public interface UserMapper  {
 
 
-    @Insert("INSERT INTO user (id, name, age, email) VALUES(1, 'Jone', 18, 'test1@baomidou.com')")
+    @Insert("INSERT INTO user (id, name, age, email) VALUES(12, 'Jone', 18, 'test1@baomidou.com')")
     Integer insertUser(@Param("user")User user);
 
 

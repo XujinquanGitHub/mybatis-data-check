@@ -44,10 +44,8 @@ public class DuplicateDataInterceptor implements Interceptor {
         Object parameter = args[1];
         BoundSql boundSql = ms.getBoundSql(parameter);
         Executor executor = (Executor) invocation.getTarget();
-        Connection connection = executor.getTransaction().getConnection();
         HandlerManager handlerManager = new HandlerManager(boundSql.getSql(), executor);
         handlerManager.handle();
-
         return invocation.proceed();
     }
 
