@@ -1,27 +1,18 @@
 package github.datacheck;
 
-import com.alibaba.druid.sql.SQLUtils;
-import com.alibaba.druid.sql.ast.SQLExpr;
-import com.alibaba.druid.sql.ast.SQLStatement;
-import com.alibaba.druid.sql.ast.expr.SQLIdentifierExpr;
-import com.alibaba.druid.sql.ast.expr.SQLValuableExpr;
-import com.alibaba.druid.sql.ast.statement.SQLInsertStatement;
-import com.alibaba.druid.util.JdbcConstants;
 import github.datacheck.enumerate.DuplicateData;
 import github.datacheck.handler.HandlerManager;
 import github.datacheck.util.ReflectionUtil;
-import github.datacheck.util.StringUtil;
 import org.apache.ibatis.executor.Executor;
 import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.plugin.*;
 
 import java.lang.reflect.Field;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 import java.util.stream.Collectors;
 
 /**
@@ -33,8 +24,6 @@ import java.util.stream.Collectors;
 public class DuplicateDataInterceptor implements Interceptor {
 
     public static Map<String, List<Field>> tableColumn;
-
-    final String selectCountFormatter = " select %s from %s where %s";
 
 
     @Override

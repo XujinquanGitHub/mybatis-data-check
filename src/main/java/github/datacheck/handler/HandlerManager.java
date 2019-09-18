@@ -20,8 +20,6 @@ import java.util.stream.Collectors;
  **/
 public class HandlerManager {
 
-    private String executeSQL;
-
     private final Log log = LogFactory.getLog(HandlerManager.class.toString());
 
     private List<SQLStatement> sqlStatements;
@@ -33,8 +31,7 @@ public class HandlerManager {
     private List<DuplicateErrorMessage> errorMessages = new ArrayList<>();
 
     public HandlerManager(String sql, Executor executor) {
-        this.executeSQL = sql;
-        this.sqlStatements = SQLUtils.parseStatements(this.executeSQL, JdbcConstants.MYSQL);
+        this.sqlStatements = SQLUtils.parseStatements(sql, JdbcConstants.MYSQL);
         this.executor = executor;
         initHandler();
     }
@@ -43,8 +40,7 @@ public class HandlerManager {
         if (sqlStatements == null || sqlStatements.size() == 0) {
             return;
         }
-        for (int i = 0; i < sqlStatements.size(); i++) {
-            SQLStatement sqlStatement = sqlStatements.get(i);
+        for (SQLStatement sqlStatement : sqlStatements) {
             if (sqlStatement instanceof SQLInsertStatement) {
                 listHandler.add(new InsertDuplicateHandler((SQLInsertStatement) sqlStatement, executor));
             }
@@ -55,12 +51,10 @@ public class HandlerManager {
         if (listHandler == null || listHandler.size() == 0) {
             return;
         }
-        listHandler.forEach(item -> {
-            errorMessages.addAll(item.handle());
-        });
+        listHandler.forEach(item -> errorMessages.addAll(item.handle()));
         if (errorMessages != null && errorMessages.size() > 0) {
-            log.error(errorMessages.stream().map(u -> u.toString()).collect(Collectors.joining("--------\n")));
-            throw new DuplicateDataException(errorMessages.stream().map(u -> u.getMessage()).collect(Collectors.joining(",")));
+            log.error(errorMessages.stream().map(DuplicateErrorMessage::toString).collect(Collectors.joining("--------\n")));
+            throw new DuplicateDataException(errorMessages.stream().map(DuplicateErrorMessage::getMessage).collect(Collectors.joining(",")));
         }
     }
 

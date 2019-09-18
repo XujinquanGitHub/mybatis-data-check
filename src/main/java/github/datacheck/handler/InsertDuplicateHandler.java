@@ -8,7 +8,6 @@ import github.datacheck.DuplicateDataInterceptor;
 import github.datacheck.enumerate.DuplicateData;
 import github.datacheck.util.StringUtil;
 import org.apache.ibatis.executor.Executor;
-import org.apache.ibatis.executor.loader.javassist.JavassistProxyFactory;
 import org.apache.ibatis.logging.Log;
 import org.apache.ibatis.logging.LogFactory;
 
@@ -16,7 +15,10 @@ import java.lang.reflect.Field;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -30,7 +32,7 @@ public class InsertDuplicateHandler implements IDuplicateHandler {
 
     private SQLInsertStatement insertStatement;
 
-    final String selectCountFormatter = " select %s from %s where %s";
+    private final String selectCountFormatter = " select %s from %s where %s";
 
     // 需要查询的字段和值
     private Map<Field, String> queryColumnValue = new HashMap<>();
@@ -57,8 +59,6 @@ public class InsertDuplicateHandler implements IDuplicateHandler {
 
     /**
      * 验证数据是否重复
-     *
-     * @param []
      * @return java.util.List<github.datacheck.handler.DuplicateErrorMessage>
      * @author 许金泉
      */
@@ -97,14 +97,12 @@ public class InsertDuplicateHandler implements IDuplicateHandler {
 
     /**
      * 在数据库中查询所需数据
-     *
-     * @param []
      * @return void
      * @author 许金泉
      */
     private void queryDataBase() {
         List<String> whereList = queryColumnValue.entrySet().stream().map(u -> " " + u.getKey().getName() + "='" + u.getValue() + "'").collect(Collectors.toList());
-        String querySql = String.format(selectCountFormatter, queryColumnValue.keySet().stream().map(u -> StringUtil.humpToLine(u.getName())).collect(Collectors.joining(",")), tableName, whereList.stream().collect(Collectors.joining(" or ")));
+        String querySql = String.format(selectCountFormatter, queryColumnValue.keySet().stream().map(u -> StringUtil.humpToLine(u.getName())).collect(Collectors.joining(",")), tableName, String.join(" or ", whereList));
         PreparedStatement statement = null;
         try {
             statement = executor.getTransaction().getConnection().prepareStatement(querySql);
@@ -134,15 +132,12 @@ public class InsertDuplicateHandler implements IDuplicateHandler {
 
     /**
      * 提取需要检查的字段
-     *
-     * @param
-     * @return void
      * @author 许金泉
      */
     private void extractQueryFields() {
         this.tableName = insertStatement.getTableName().getSimpleName();
         // 提取需要检查的字段
-        List<Field> fields = DuplicateDataInterceptor.tableColumn.entrySet().stream().filter(u -> u.getKey().equalsIgnoreCase(StringUtil.camel(tableName))).map(u -> u.getValue()).findFirst().orElse(null);
+        List<Field> fields = DuplicateDataInterceptor.tableColumn.entrySet().stream().filter(u -> u.getKey().equalsIgnoreCase(StringUtil.camel(tableName))).map(Map.Entry::getValue).findFirst().orElse(null);
         if (fields == null || fields.size() <= 0) {
             return;
         }
@@ -154,8 +149,7 @@ public class InsertDuplicateHandler implements IDuplicateHandler {
             SQLValuableExpr valueExpr = (SQLValuableExpr) values.get(i);
             columnValueMap.put(sqlExpr.getName(), valueExpr.getValue().toString());
         }
-        for (int i = 0; i < fields.size(); i++) {
-            Field field = fields.get(i);
+        for (Field field : fields) {
             String fieldName = StringUtil.humpToLine(field.getName());
             if (columnValueMap.containsKey(fieldName)) {
                 queryColumnValue.put(field, columnValueMap.get(fieldName));
