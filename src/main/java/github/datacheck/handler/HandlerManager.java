@@ -3,6 +3,7 @@ package github.datacheck.handler;
 import com.alibaba.druid.sql.SQLUtils;
 import com.alibaba.druid.sql.ast.SQLStatement;
 import com.alibaba.druid.sql.ast.statement.SQLInsertStatement;
+import com.alibaba.druid.sql.ast.statement.SQLUpdateStatement;
 import com.alibaba.druid.util.JdbcConstants;
 import github.datacheck.exception.DuplicateDataException;
 import org.apache.ibatis.executor.Executor;
@@ -43,6 +44,8 @@ public class HandlerManager {
         for (SQLStatement sqlStatement : sqlStatements) {
             if (sqlStatement instanceof SQLInsertStatement) {
                 listHandler.add(new InsertDuplicateHandler((SQLInsertStatement) sqlStatement, executor));
+            }else if (sqlStatement instanceof SQLUpdateStatement){
+                listHandler.add(new UpdateDuplicateHandler((SQLUpdateStatement) sqlStatement, executor));
             }
         }
     }

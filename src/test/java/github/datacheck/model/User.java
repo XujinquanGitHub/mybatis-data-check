@@ -17,11 +17,12 @@ public class User implements Serializable {
 
     private Long id;
 
-    @DuplicateData
+    @DuplicateData(template = "名字重复！")
     private String name;
 
+    @DuplicateData(template = "年份重复！")
     private Integer age;
 
-    @DuplicateData
+    @DuplicateData(template = "邮箱重复！")
     private String email;
 }

@@ -1,15 +1,16 @@
 package github.datacheck.handler;
 
 import com.alibaba.druid.sql.ast.SQLExpr;
+import com.alibaba.druid.sql.ast.expr.SQLBinaryOpExpr;
 import com.alibaba.druid.sql.ast.expr.SQLIdentifierExpr;
 import com.alibaba.druid.sql.ast.expr.SQLValuableExpr;
 import com.alibaba.druid.sql.ast.statement.SQLInsertStatement;
+import com.alibaba.druid.sql.ast.statement.SQLUpdateSetItem;
+import com.alibaba.druid.sql.ast.statement.SQLUpdateStatement;
 import github.datacheck.DuplicateDataInterceptor;
 import github.datacheck.enumerate.DuplicateData;
 import github.datacheck.util.StringUtil;
 import org.apache.ibatis.executor.Executor;
-import org.apache.ibatis.logging.Log;
-import org.apache.ibatis.logging.LogFactory;
 
 import java.lang.reflect.Field;
 import java.sql.PreparedStatement;
@@ -22,28 +23,28 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * @program: data-check
- * @description: 插入时检查数据是否重复
+ * @program: mybatis-data-check
+ * @description:
  * @author: 许金泉
+ * @create: 2019-09-19 15:46
  **/
-public class InsertDuplicateHandler extends AbstractDuplicateHandler {
+public class UpdateDuplicateHandler extends AbstractDuplicateHandler {
 
-    private SQLInsertStatement insertStatement;
+    private SQLUpdateStatement updateStatement;
 
-
-    // 需要查询的字段和值
     protected Map<Field, String> queryColumnValue = new HashMap<>();
+
 
     // 数据库查询出来的数据
     protected List<Map<String, String>> database = new ArrayList<>();
 
-    public InsertDuplicateHandler(SQLInsertStatement insertStatement, Executor executor) {
-        this.insertStatement = insertStatement;
+    public UpdateDuplicateHandler(SQLUpdateStatement insertStatement, Executor executor) {
+        this.updateStatement = insertStatement;
         this.executor = executor;
     }
 
     @Override
-    public List<DuplicateErrorMessage> handle() {
+    List<DuplicateErrorMessage> handle() {
         extractQueryFields();
         queryDataBase();
         return validateDataDuplicate();
@@ -51,12 +52,13 @@ public class InsertDuplicateHandler extends AbstractDuplicateHandler {
 
     /**
      * 验证数据是否重复
+     *
      * @return java.util.List<github.datacheck.handler.DuplicateErrorMessage>
      * @author 许金泉
      */
     private List<DuplicateErrorMessage> validateDataDuplicate() {
         List<DuplicateErrorMessage> errorMessages = new ArrayList<>();
-        if (database == null || database.size() == 0) {
+        if (database == null || database.size() == 0 || database.size() == 1) {
             return errorMessages;
         }
         return queryColumnValue.entrySet().stream().filter(u -> {
@@ -87,16 +89,22 @@ public class InsertDuplicateHandler extends AbstractDuplicateHandler {
         }).filter(u -> u != null).collect(Collectors.toList());
     }
 
-
-
     /**
      * 在数据库中查询所需数据
+     *
      * @return void
      * @author 许金泉
      */
-    protected void queryDataBase() {
+    private void queryDataBase() {
         List<String> whereList = queryColumnValue.entrySet().stream().map(u -> " " + u.getKey().getName() + "='" + u.getValue() + "'").collect(Collectors.toList());
-        String querySql = String.format(selectCountFormatter, queryColumnValue.keySet().stream().map(u -> StringUtil.humpToLine(u.getName())).collect(Collectors.joining(",")), tableName, String.join(" or ", whereList));
+        String whereString = "";
+        SQLBinaryOpExpr where = (SQLBinaryOpExpr) updateStatement.getWhere();
+        if (!"".equalsIgnoreCase(where.toString())) {
+            whereString = where.toString() + " or " + String.join(" or ", whereList);
+        } else {
+            whereString = String.join(" or ", whereList);
+        }
+        String querySql = String.format(selectCountFormatter, queryColumnValue.keySet().stream().map(u -> StringUtil.humpToLine(u.getName())).collect(Collectors.joining(",")), tableName, whereString);
         PreparedStatement statement = null;
         try {
             statement = executor.getTransaction().getConnection().prepareStatement(querySql);
@@ -124,25 +132,25 @@ public class InsertDuplicateHandler extends AbstractDuplicateHandler {
         }
     }
 
-
     /**
      * 提取需要检查的字段
+     *
      * @author 许金泉
      */
-    protected void extractQueryFields() {
-        this.tableName = insertStatement.getTableName().getSimpleName();
+    private void extractQueryFields() {
+        this.tableName = updateStatement.getTableName().getSimpleName();
         // 提取需要检查的字段
         List<Field> fields = DuplicateDataInterceptor.tableColumn.entrySet().stream().filter(u -> u.getKey().equalsIgnoreCase(StringUtil.underlineToHump(tableName))).map(Map.Entry::getValue).findFirst().orElse(null);
         if (fields == null || fields.size() <= 0) {
             return;
         }
-        List<SQLExpr> values = insertStatement.getValues().getValues();
-        List<SQLExpr> columns = insertStatement.getColumns();
-        Map<String, String> columnValueMap = new HashMap<>(columns.size());
-        for (int i = 0; i < columns.size(); i++) {
-            SQLIdentifierExpr sqlExpr = (SQLIdentifierExpr) columns.get(i);
-            SQLValuableExpr valueExpr = (SQLValuableExpr) values.get(i);
-            columnValueMap.put(sqlExpr.getName(), valueExpr.getValue().toString());
+        List<SQLUpdateSetItem> items = updateStatement.getItems();
+        Map<String, String> columnValueMap = new HashMap<>(items.size());
+        for (int i = 0; i < items.size(); i++) {
+            SQLUpdateSetItem sqlUpdateSetItem = items.get(i);
+            SQLIdentifierExpr column = (SQLIdentifierExpr) sqlUpdateSetItem.getColumn();
+            SQLValuableExpr valueExpr = (SQLValuableExpr) sqlUpdateSetItem.getValue();
+            columnValueMap.put(column.getName(), valueExpr.getValue().toString());
         }
         for (Field field : fields) {
             String fieldName = StringUtil.humpToLine(field.getName());
@@ -151,8 +159,5 @@ public class InsertDuplicateHandler extends AbstractDuplicateHandler {
             }
         }
     }
-
-
-
 
 }
