@@ -8,13 +8,8 @@ import github.datacheck.DuplicateDataInterceptor;
 import github.datacheck.enumerate.DuplicateData;
 import github.datacheck.util.StringUtil;
 import org.apache.ibatis.executor.Executor;
-import org.apache.ibatis.logging.Log;
-import org.apache.ibatis.logging.LogFactory;
 
 import java.lang.reflect.Field;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -87,7 +82,7 @@ public class InsertDuplicateHandler extends AbstractDuplicateHandler {
     protected void extractQueryFields() {
         this.tableName = insertStatement.getTableName().getSimpleName();
         // 提取需要检查的字段
-        List<Field> fields = DuplicateDataInterceptor.tableColumn.entrySet().stream().filter(u -> u.getKey().equalsIgnoreCase(StringUtil.camel(tableName))).map(Map.Entry::getValue).findFirst().orElse(null);
+        List<Field> fields = DuplicateDataInterceptor.tableColumn.entrySet().stream().filter(u -> u.getKey().equalsIgnoreCase(StringUtil.underlineToHump(tableName))).map(Map.Entry::getValue).findFirst().orElse(null);
         if (fields == null || fields.size() <= 0) {
             return;
         }

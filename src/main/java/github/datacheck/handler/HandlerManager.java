@@ -26,7 +26,7 @@ public class HandlerManager {
 
     private Executor executor;
 
-    private List<IDuplicateHandler> listHandler = new ArrayList<>();
+    private List<AbstractDuplicateHandler> listHandler = new ArrayList<>();
 
     private List<DuplicateErrorMessage> errorMessages = new ArrayList<>();
 
