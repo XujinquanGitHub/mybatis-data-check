@@ -20,7 +20,7 @@ if(user!=null){
 
 ```java
 <dependency>
-    <groupId>com.github.datacheck</groupId>
+    <groupId>com.github.XujinquanGitHub</groupId>
     <artifactId>data-check</artifactId>
     <version>1.0-SNAPSHOT</version>
 </dependency>
