@@ -10,8 +10,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * @program: data-check
- * @description:
  * @author: 许金泉
  **/
 public class SampleTest {

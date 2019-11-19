@@ -20,8 +20,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * @program: data-check
- * @description:
  * @author: 许金泉
  **/
 @Intercepts({@Signature(type = Executor.class, method = "update", args = {MappedStatement.class, Object.class})})

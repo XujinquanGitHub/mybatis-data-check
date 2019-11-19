@@ -21,9 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * @program: data-check
- * @description: 插入时检查数据是否重复
+/** 插入时检查数据是否重复
  * @author: 许金泉
  **/
 public class InsertDuplicateHandler extends AbstractDuplicateHandler {
@@ -91,7 +89,6 @@ public class InsertDuplicateHandler extends AbstractDuplicateHandler {
 
     /**
      * 在数据库中查询所需数据
-     * @return void
      * @author 许金泉
      */
     protected void queryDataBase() {

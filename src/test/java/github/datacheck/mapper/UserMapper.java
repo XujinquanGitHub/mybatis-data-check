@@ -4,8 +4,6 @@ import github.datacheck.model.User;
 import org.apache.ibatis.annotations.*;
 
 /**
- * @program: data-check
- * @description:
  * @author: 许金泉
  **/
 @Mapper

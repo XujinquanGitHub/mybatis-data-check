@@ -15,8 +15,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * @program: data-check
- * @description:
  * @author: 许金泉
  **/
 public class HandlerManager {

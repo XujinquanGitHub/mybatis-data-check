@@ -3,8 +3,6 @@ package github.datacheck.handler;
 import java.lang.reflect.Field;
 
 /**
- * @program: mybatis-data-check
- * @description:
  * @author: 许金泉
  **/
 public class DuplicateErrorMessage {

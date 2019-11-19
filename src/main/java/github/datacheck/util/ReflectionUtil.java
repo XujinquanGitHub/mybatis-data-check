@@ -16,8 +16,6 @@ import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 
 /**
- * @program: data-check
- * @description:
  * @author: 许金泉
  **/
 public class ReflectionUtil {
@@ -38,9 +36,6 @@ public class ReflectionUtil {
 
     /**
      * 从包package中获取所有的Class
-     *
-     * @param packageName
-     * @return
      */
     public static List<Class<?>> getClasses(String packageName) {
 
@@ -125,10 +120,10 @@ public class ReflectionUtil {
     /**
      * 以文件的形式来获取包下的所有Class
      *
-     * @param packageName
-     * @param packagePath
-     * @param recursive
-     * @param classes
+     * @param packageName 包名
+     * @param packagePath 包路径
+     * @param recursive 是否递归
+     * @param classes 类集合
      */
     public static void findAndAddClassesInPackageByFile(String packageName, String packagePath, final boolean recursive, List<Class<?>> classes) {
         //获取此包的目录 建立一个File

@@ -19,17 +19,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * @program: data-check
- * @description: 检查数据是否重复
+/** 检查数据是否重复
  * @author: 许金泉
  **/
 public abstract class AbstractDuplicateHandler {
 
-
     protected final Log log = LogFactory.getLog(getClass());
 
-    protected final String selectCountFormatter = " select %s from %s where %s";
+    protected final String selectCountFormatter = " select %s from %s where %s ";
 
     protected String tableName;
 

@@ -7,8 +7,6 @@ import lombok.experimental.Accessors;
 import java.io.Serializable;
 
 /**
- * @program: data-check
- * @description:
  * @author: 许金泉
  **/
 @Data

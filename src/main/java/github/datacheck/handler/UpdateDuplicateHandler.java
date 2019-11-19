@@ -23,10 +23,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * @program: mybatis-data-check
- * @description:
  * @author: 许金泉
- * @create: 2019-09-19 15:46
  **/
 public class UpdateDuplicateHandler extends AbstractDuplicateHandler {
 

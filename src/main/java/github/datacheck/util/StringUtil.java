@@ -4,8 +4,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * @program: data-check
- * @description:
  * @author: 许金泉
  **/
 public class StringUtil {
@@ -33,6 +31,7 @@ public class StringUtil {
     private static Pattern humpPattern = Pattern.compile("[A-Z]");
 
     /**
+     * @param str 字符串
      * 驼峰转下划线
      */
     public static String humpToLine(String str) {
